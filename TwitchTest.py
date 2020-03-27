@@ -8,7 +8,7 @@ import urllib.parse
 import threading
 from http.server import BaseHTTPRequestHandler,HTTPServer
 
-HOST_NAME = ''
+HOST_NAME = '0.0.0.0'
 PORT_NUMBER = 8080
 
 # @author Martin
