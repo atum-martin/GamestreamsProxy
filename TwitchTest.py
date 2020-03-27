@@ -8,7 +8,7 @@ import urllib.parse
 from http.server import BaseHTTPRequestHandler,HTTPServer
 
 HOST_NAME = ''
-PORT_NUMBER = 80
+PORT_NUMBER = 8080
 
 # @author Martin
 # Date: 26/03/2020
