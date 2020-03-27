@@ -1,1 +1,1 @@
-web: python TwitchTest.py $PORT
+web:python TwitchTest.py
