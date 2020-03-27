@@ -92,7 +92,7 @@ class TwitchHttpHander(BaseHTTPRequestHandler):
         s.send_header("Access-Control-Allow-Origin", "*")
         s.end_headers()
     def do_GET(s):
-		print("get: "+s.path)
+        print("get: "+s.path)
         if s.path == "/":
             title(s)
             return
