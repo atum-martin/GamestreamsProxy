@@ -5,6 +5,7 @@ import time
 import json
 import ssl
 import urllib.parse
+import threading
 from http.server import BaseHTTPRequestHandler,HTTPServer
 
 HOST_NAME = ''
@@ -86,13 +87,12 @@ def parseM3U(m3uContent):
 
 class TwitchHttpHander(BaseHTTPRequestHandler):
     def do_HEAD(s):
-        print("head: ")
         s.send_response(200)
         #s.send_header("Content-type", "text/html")
         s.send_header("Access-Control-Allow-Origin", "*")
         s.end_headers()
     def do_GET(s):
-        print("get: "+s.path)
+        print("get: " +s.path)
         if s.path == "/":
             title(s)
             return
@@ -179,7 +179,8 @@ def startWebServer():
 
 #channelName = "esl_csgo"
 #getStreamsForChannel(channelName)
-
-startWebServer()
+t = threading.Thread(target=startWebServer)
+t.start()
+#startWebServer()
 
 
