@@ -1,1 +1,1 @@
-web:python TwitchTest.py
+web: python TwitchTest.py
