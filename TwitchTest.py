@@ -6,10 +6,11 @@ import json
 import ssl
 import urllib.parse
 import threading
+import os
 from http.server import BaseHTTPRequestHandler,HTTPServer
 
-HOST_NAME = '0.0.0.0'
-PORT_NUMBER = 8080
+HOST_NAME = ''
+PORT_NUMBER = os.environ['PORT']
 
 # @author Martin
 # Date: 26/03/2020
