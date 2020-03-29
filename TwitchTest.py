@@ -5,6 +5,7 @@ import time
 import json
 import ssl
 import urllib.parse
+from urllib.parse import unquote
 import threading
 import os
 from http.server import BaseHTTPRequestHandler,HTTPServer
@@ -13,7 +14,7 @@ HOST_NAME = '0.0.0.0'
 if os.environ.get('PORT') is not None:
     PORT_NUMBER = int(os.environ['PORT'])
 else :
-    PORT_NUMBER = 8080
+    PORT_NUMBER = 820
 
 class CacheVars:
     topGamesTwitchJson = None
@@ -82,15 +83,19 @@ def getTopStreamsTwitch():
     return output
 
 def getTopStreamsForGame(gameName):
+    gameName = unquote(gameName)
     if gameName in CacheVars.topStreamsForGameTimestamps and time.time() - CacheVars.topStreamsForGameTimestamps[gameName] < 60:
         return CacheVars.topStreamsForGameJson[gameName]
 
+
+    print("getting streams for game: "+gameName+" ")
     payload = streamsForGameJson(gameName)
     obj = getTwitchJsonBrowserAPI(payload)
+    print(obj)
     output = {"streams": []}
 
     for stream in obj[0]['data']['game']['streams']['edges']:
-        streamParsed = {"channel": {"display_name": stream['node']['broadcaster']['displayName'],"name": stream['node']['broadcaster']['login'], "box": {"medium": stream['node']['previewImageURL']}}}
+        streamParsed = {"preview": {"medium": stream['node']['previewImageURL']}, "channel": {"display_name": stream['node']['broadcaster']['displayName'],"name": stream['node']['broadcaster']['login']}}
         output['streams'].append(streamParsed)
 
     print(output)
@@ -272,6 +277,9 @@ def startWebServer():
 
 #channelName = "esl_csgo"
 #getStreamsForChannel(channelName)
+
+#getTopStreamsForGame("Counter-strike: Global Offensive")
+
 t = threading.Thread(target=startWebServer)
 t.start()
 
