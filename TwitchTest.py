@@ -10,7 +10,19 @@ import os
 from http.server import BaseHTTPRequestHandler,HTTPServer
 
 HOST_NAME = '0.0.0.0'
-PORT_NUMBER = int(os.environ['PORT'])
+if os.environ.get('PORT') is not None:
+    PORT_NUMBER = int(os.environ['PORT'])
+else :
+    PORT_NUMBER = 8080
+
+topGamesTwitchJson = None
+topGamesTwitchTimestamp = 0
+
+topStreamsTwitchJson = None
+topStreamsTwitchTimestamp = 0
+
+topStreamsForGameJson = dict()
+topStreamsForGameTimestamps = dict()
 
 # @author Martin
 # Date: 26/03/2020
@@ -21,6 +33,82 @@ def getContentForUrl(URL):
     obj = r.json()
     return obj
 
+def getTwitchJsonBrowserAPI(json):
+    URL = 'https://gql.twitch.tv/gql'
+    headers = {
+        'Client-Id': 'kimne78kx3ncx6brgo4mv6wki5h1ko',
+        'Accept': '*/*',
+        'X-Device-Id': '6b885390dcd3be57',
+        'Referer': 'https://www.twitch.tv/directory',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.149 Safari/537.36'
+    }
+
+    r = requests.post(url=URL, headers=headers, data=json)
+    obj = r.json()
+    return obj
+
+def getTopGamesTwitch():
+    if time.time() - topGamesTwitchTimestamp < 60:
+        return topGamesTwitchJson
+
+    payload = topGamesJson()
+    obj = getTwitchJsonBrowserAPI(payload)
+    output = {"top": []}
+
+    for game in obj[1]['data']['directoriesWithTags']['edges']:
+        gameParsed = {"game": {"name": game['node']['displayName'], "box": {"medium": game['node']['avatarURL']}}}
+        output['top'].append(gameParsed)
+    topGamesTwitchJson = output
+    topGamesTwitchTimestamp = time.time()
+    print(output)
+    return output
+
+def getTopStreamsTwitch():
+    if time.time() - topStreamsTwitchTimestamp < 60:
+        return topStreamsTwitchJson
+
+    payload = topStreamsJson()
+    obj = getTwitchJsonBrowserAPI(payload)
+    output = {"streams": []}
+
+    for stream in obj[0]['data']['streams']['edges']:
+        streamParsed = {"channel": {"display_name": stream['node']['broadcaster']['displayName'],"name": stream['node']['broadcaster']['login'],"box": {"medium": stream['node']['previewImageURL']}}}
+        output['streams'].append(streamParsed)
+
+    topStreamsTwitchJson = output
+    topStreamsTwitchTimestamp = time.time()
+    print(output)
+    return output
+
+def getTopStreamsForGame(gameName):
+    if gameName in topStreamsForGameTimestamps and time.time() - topStreamsForGameTimestamps[gameName] < 60:
+        return topStreamsForGameJson[gameName]
+
+    payload = streamsForGameJson(gameName)
+    obj = getTwitchJsonBrowserAPI(payload)
+    output = {"streams": []}
+
+    for stream in obj[0]['data']['game']['streams']['edges']:
+        streamParsed = {"channel": {"display_name": stream['node']['broadcaster']['displayName'],"name": stream['node']['broadcaster']['login'], "box": {"medium": stream['node']['previewImageURL']}}}
+        output['streams'].append(streamParsed)
+
+    print(output)
+    topStreamsForGameJson[gameName] = output
+    topStreamsForGameTimestamps[gameName] = time.time()
+    return output
+
+def topStreamsJson():
+    payload = '[{"operationName":"BrowsePage_Popular","variables":{"limit":30,"platformType":"all","options":{"sort":"RELEVANCE","tags":[],"recommendationsContext":{"platform":"web"},"requestID":"JIRA-VXP-2397"},"sortTypeIsRecency":false},"extensions":{"persistedQuery":{"version":1,"sha256Hash":"3d1831781016217b1002b489682cd77f2726ff695b19f9704ffd8de35cd17edc"}}}]'
+    return payload
+
+def topGamesJson():
+    payload = '[{"operationName":"Algolia_RequestInfo","variables":{},"extensions":{"persistedQuery":{"version":1,"sha256Hash":"53a624acee2ecd22dd652c6c7beb352e30a62fc91260cf10d4a687cf08c881c0"}}},{"operationName":"BrowsePage_AllDirectories","variables":{"limit":30,"options":{"recommendationsContext":{"platform":"web"},"requestID":"JIRA-VXP-2397","sort":"RELEVANCE","tags":[]}},"extensions":{"persistedQuery":{"version":1,"sha256Hash":"78957de9388098820e222c88ec14e85aaf6cf844adf44c8319c545c75fd63203"}}}]'
+    return payload
+
+def streamsForGameJson(gameName):
+    getStreamsForGameJson = '[{"operationName":"DirectoryPage_Game","variables":{"name":"'+gameName.lower()+'","options":{"sort":"RELEVANCE","recommendationsContext":{"platform":"web"},"requestID":"JIRA-VXP-2397","tags":[]},"sortTypeIsRecency":false,"limit":30},"extensions":{"persistedQuery":{"version":1,"sha256Hash":"f2ac02ded21558ad8b747a0b63c0bb02b0533b6df8080259be10d82af63d50b3"}}}]'
+    return getStreamsForGameJson
+
 def getStreamsForChannel(channelName):
     URL = "https://api.twitch.tv/api/channels/"+channelName+"/access_token.json"
 
@@ -28,8 +116,6 @@ def getStreamsForChannel(channelName):
         'Client-ID': 'kimne78kx3ncx6brgo4mv6wki5h1ko',
         'Accept': 'application/vnd.twitchtv.v3+json'
     }
-
-
 
     r = requests.get(url=URL, headers=headers)
     obj = r.json()
@@ -135,22 +221,32 @@ def title(s):
 
 def gamesTop(s):
     #data_set = {"top": [{"game": {"name": "csgo", "box": {"medium": "https://web.poecdn.com/gen/image/WzAsMSx7ImlkIjo1NTgsInNpemUiOiJhdmF0YXIifV0/75e7b71751/Path_of_Exile_Gallery_Image.jpg"}}}] }
-    url = 'https://api.twitch.tv/kraken/games/top?client_id=jzkbprff40iqj646a697cyrvl0zt2m6&limit=30&offset=0'
-    data_set = getContentForUrl(url)
-
+    #url = 'https://api.twitch.tv/kraken/games/top?client_id=jzkbprff40iqj646a697cyrvl0zt2m6&limit=30&offset=0'
+    #data_set = getContentForUrl(url)
+    data_set = getTopGamesTwitch()
     writeJson(s, data_set)
 
 def getStreamersForGame(s, gameName):
     #data_set = {"streams": [{"channel": {"display_name": "shroud", "name": "shroud"},"preview": {"medium": "https://web.poecdn.com/gen/image/WzAsMSx7ImlkIjo1NTgsInNpemUiOiJhdmF0YXIifV0/75e7b71751/Path_of_Exile_Gallery_Image.jpg"}}] }
     #data_set = getStreamsForChannel("esl_csgo")
 
-    url = 'https://api.twitch.tv/kraken/streams?client_id=jzkbprff40iqj646a697cyrvl0zt2m6&limit=30&game='+gameName
-    data_set = getContentForUrl(url)
+    #url = 'https://api.twitch.tv/kraken/streams?client_id=jzkbprff40iqj646a697cyrvl0zt2m6&limit=30&game='+gameName
+    #data_set = getContentForUrl(url)
+    data_set = getTopStreamsForGame(gameName)
+    writeJson(s, data_set)
+
+def topStreams(s):
+    #data_set = {"streams": [ {"channel": {"name": "shroud"}} ] }
+    #this is the initial stream thats loaded in the app
+    #url = 'https://api.twitch.tv/kraken/streams?client_id=jzkbprff40iqj646a697cyrvl0zt2m6&limit=30'
+    #data_set = getContentForUrl(url)
+    data_set = getTopStreamsTwitch()
     writeJson(s, data_set)
 
 def streamsForChannel(s, channelName):
     #url = 'http://192.168.0.99:820/proxy?path='+twitchurl
     data_set = getStreamsForChannel(channelName)
+
     writeJson(s, data_set)
 
 
@@ -158,12 +254,7 @@ def matureGames(s):
     data_set = {"mature_games": [ {"game": {"name": "csgo"}} ] }
     writeJson(s, data_set)
 
-def topStreams(s):
-    #data_set = {"streams": [ {"channel": {"name": "shroud"}} ] }
-    #this is the initial stream thats loaded in the app
-    url = 'https://api.twitch.tv/kraken/streams?client_id=jzkbprff40iqj646a697cyrvl0zt2m6&limit=30'
-    data_set = getContentForUrl(url)
-    writeJson(s, data_set)
+
 
 
 def startWebServer():
@@ -182,6 +273,7 @@ def startWebServer():
 #getStreamsForChannel(channelName)
 t = threading.Thread(target=startWebServer)
 t.start()
+
 #startWebServer()
 
 
