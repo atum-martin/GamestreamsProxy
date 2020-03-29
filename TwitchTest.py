@@ -15,14 +15,15 @@ if os.environ.get('PORT') is not None:
 else :
     PORT_NUMBER = 8080
 
-topGamesTwitchJson = None
-topGamesTwitchTimestamp = 0
+class CacheVars:
+    topGamesTwitchJson = None
+    topGamesTwitchTimestamp = 0
 
-topStreamsTwitchJson = None
-topStreamsTwitchTimestamp = 0
+    topStreamsTwitchJson = None
+    topStreamsTwitchTimestamp = 0
 
-topStreamsForGameJson = dict()
-topStreamsForGameTimestamps = dict()
+    topStreamsForGameJson = dict()
+    topStreamsForGameTimestamps = dict()
 
 # @author Martin
 # Date: 26/03/2020
@@ -48,8 +49,8 @@ def getTwitchJsonBrowserAPI(json):
     return obj
 
 def getTopGamesTwitch():
-    if time.time() - topGamesTwitchTimestamp < 60:
-        return topGamesTwitchJson
+    if time.time() - CacheVars.topGamesTwitchTimestamp < 60:
+        return CacheVars.topGamesTwitchJson
 
     payload = topGamesJson()
     obj = getTwitchJsonBrowserAPI(payload)
@@ -58,14 +59,14 @@ def getTopGamesTwitch():
     for game in obj[1]['data']['directoriesWithTags']['edges']:
         gameParsed = {"game": {"name": game['node']['displayName'], "box": {"medium": game['node']['avatarURL']}}}
         output['top'].append(gameParsed)
-    topGamesTwitchJson = output
-    topGamesTwitchTimestamp = time.time()
+    CacheVars.topGamesTwitchJson = output
+    CacheVars.topGamesTwitchTimestamp = time.time()
     print(output)
     return output
 
 def getTopStreamsTwitch():
-    if time.time() - topStreamsTwitchTimestamp < 60:
-        return topStreamsTwitchJson
+    if time.time() - CacheVars.topStreamsTwitchTimestamp < 60:
+        return CacheVars.topStreamsTwitchJson
 
     payload = topStreamsJson()
     obj = getTwitchJsonBrowserAPI(payload)
@@ -75,14 +76,14 @@ def getTopStreamsTwitch():
         streamParsed = {"channel": {"display_name": stream['node']['broadcaster']['displayName'],"name": stream['node']['broadcaster']['login'],"box": {"medium": stream['node']['previewImageURL']}}}
         output['streams'].append(streamParsed)
 
-    topStreamsTwitchJson = output
-    topStreamsTwitchTimestamp = time.time()
+    CacheVars.topStreamsTwitchJson = output
+    CacheVars.topStreamsTwitchTimestamp = time.time()
     print(output)
     return output
 
 def getTopStreamsForGame(gameName):
-    if gameName in topStreamsForGameTimestamps and time.time() - topStreamsForGameTimestamps[gameName] < 60:
-        return topStreamsForGameJson[gameName]
+    if gameName in CacheVars.topStreamsForGameTimestamps and time.time() - CacheVars.topStreamsForGameTimestamps[gameName] < 60:
+        return CacheVars.topStreamsForGameJson[gameName]
 
     payload = streamsForGameJson(gameName)
     obj = getTwitchJsonBrowserAPI(payload)
@@ -93,8 +94,8 @@ def getTopStreamsForGame(gameName):
         output['streams'].append(streamParsed)
 
     print(output)
-    topStreamsForGameJson[gameName] = output
-    topStreamsForGameTimestamps[gameName] = time.time()
+    CacheVars.topStreamsForGameJson[gameName] = output
+    CacheVars.topStreamsForGameTimestamps[gameName] = time.time()
     return output
 
 def topStreamsJson():
@@ -216,7 +217,7 @@ def writeJson(s, data_set):
     s.wfile.write(json.dumps(data_set).encode())
 
 def title(s):
-    data_set = {"config": {"url": "http://192.168.0.99:820" }}
+    data_set = {"config": {"url": "https://atummartin-ttv.herokuapp.com/" }}
     writeJson(s, data_set)
 
 def gamesTop(s):
@@ -273,6 +274,7 @@ def startWebServer():
 #getStreamsForChannel(channelName)
 t = threading.Thread(target=startWebServer)
 t.start()
+
 
 #startWebServer()
 
