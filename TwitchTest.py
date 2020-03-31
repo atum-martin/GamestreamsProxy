@@ -82,6 +82,26 @@ def getTopStreamsTwitch():
     print(output)
     return output
 
+def searchForChannelTwitch(searchTerm):
+    searchTerm = unquote(searchTerm)
+
+    print("getting streams for search: " + searchTerm + " ")
+    payload = searchForTermJson(searchTerm)
+    obj = getTwitchJsonBrowserAPI(payload)
+    print(obj)
+    output = {"streams": []}
+
+    for stream in obj[0]['data']['searchSuggestions']['edges']:
+        if stream['node']['content'] is None or stream['node']['content']['__typename'] != "SearchSuggestionChannel":
+            continue
+        streamParsed = {"preview": {"medium": stream['node']['content']['profileImageURL']},
+                        "channel": {"display_name": stream['node']['content']['login'],
+                                    "name": stream['node']['content']['login']}}
+        output['streams'].append(streamParsed)
+
+    print(output)
+    return output
+
 def getTopStreamsForGame(gameName):
     gameName = unquote(gameName)
     if gameName in CacheVars.topStreamsForGameTimestamps and time.time() - CacheVars.topStreamsForGameTimestamps[gameName] < 60:
@@ -114,6 +134,10 @@ def topGamesJson():
 def streamsForGameJson(gameName):
     getStreamsForGameJson = '[{"operationName":"DirectoryPage_Game","variables":{"name":"'+gameName.lower()+'","options":{"sort":"RELEVANCE","recommendationsContext":{"platform":"web"},"requestID":"JIRA-VXP-2397","tags":[]},"sortTypeIsRecency":false,"limit":30},"extensions":{"persistedQuery":{"version":1,"sha256Hash":"f2ac02ded21558ad8b747a0b63c0bb02b0533b6df8080259be10d82af63d50b3"}}}]'
     return getStreamsForGameJson
+
+def searchForTermJson(searchTerm):
+    json = '[{"operationName":"SearchTray_SearchSuggestions","variables":{"queryFragment":"'+searchTerm+'","requestID":"1441a3fb-b8cb-4cf4-bfec-9559427a28fd"},"extensions":{"persistedQuery":{"version":1,"sha256Hash":"2a747ed872b1c3f56ed500d097096f0cf8d365d2d5131cbdc170ae502f9b406a"}}}]'
+    return json
 
 def getStreamsForChannel(channelName):
     URL = "https://api.twitch.tv/api/channels/"+channelName+"/access_token.json"
@@ -208,6 +232,11 @@ class TwitchHttpHander(BaseHTTPRequestHandler):
             print("channelName: "+channelName)
             streamsForChannel(s, channelName)
             return
+        if "/search-streams/" in s.path:
+            searchTerm = s.path[16:]
+            print("searchTerm: " + searchTerm)
+            searchForChannel(s, searchTerm)
+            return
 
         print("unknown: "+s.path)
 
@@ -230,6 +259,13 @@ def gamesTop(s):
     #url = 'https://api.twitch.tv/kraken/games/top?client_id=jzkbprff40iqj646a697cyrvl0zt2m6&limit=30&offset=0'
     #data_set = getContentForUrl(url)
     data_set = getTopGamesTwitch()
+    writeJson(s, data_set)
+
+def searchForChannel(s, searchTerm):
+    #data_set = {"top": [{"game": {"name": "csgo", "box": {"medium": "https://web.poecdn.com/gen/image/WzAsMSx7ImlkIjo1NTgsInNpemUiOiJhdmF0YXIifV0/75e7b71751/Path_of_Exile_Gallery_Image.jpg"}}}] }
+    #url = 'https://api.twitch.tv/kraken/games/top?client_id=jzkbprff40iqj646a697cyrvl0zt2m6&limit=30&offset=0'
+    #data_set = getContentForUrl(url)
+    data_set = searchForChannelTwitch(searchTerm)
     writeJson(s, data_set)
 
 def getStreamersForGame(s, gameName):
