@@ -74,7 +74,7 @@ def getTopStreamsTwitch():
     output = {"streams": []}
 
     for stream in obj[0]['data']['streams']['edges']:
-        streamParsed = {"channel": {"display_name": stream['node']['broadcaster']['displayName'],"name": stream['node']['broadcaster']['login'],"box": {"medium": stream['node']['previewImageURL']}}}
+        streamParsed = {"channel": {"display_name": stream['node']['broadcaster']['displayName'],"name": stream['node']['broadcaster']['login'],"box": {"medium": stream['node']['previewImageURL']}}, "preview": {"medium": stream['node']['previewImageURL']}}
         output['streams'].append(streamParsed)
 
     CacheVars.topStreamsTwitchJson = output
