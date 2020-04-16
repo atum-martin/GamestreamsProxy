@@ -91,12 +91,13 @@ def searchForChannelTwitch(searchTerm):
     print(obj)
     output = {"streams": []}
 
-    for stream in obj[0]['data']['searchSuggestions']['edges']:
-        if stream['node']['content'] is None or stream['node']['content']['__typename'] != "SearchSuggestionChannel":
+    for stream in obj[0]['data']['searchFor']['channels']['items']:
+        if stream['stream'] is None:
             continue
-        streamParsed = {"preview": {"medium": stream['node']['content']['profileImageURL']},
-                        "channel": {"display_name": stream['node']['content']['login'],
-                                    "name": stream['node']['content']['login']}}
+        print(stream)
+        streamParsed = {"preview": {"medium": stream['stream']['previewImageURL']},
+                        "channel": {"display_name": stream['displayName'],
+                                    "name": stream['login']}}
         output['streams'].append(streamParsed)
 
     print(output)
@@ -136,7 +137,8 @@ def streamsForGameJson(gameName):
     return getStreamsForGameJson
 
 def searchForTermJson(searchTerm):
-    json = '[{"operationName":"SearchTray_SearchSuggestions","variables":{"queryFragment":"'+searchTerm+'","requestID":"1441a3fb-b8cb-4cf4-bfec-9559427a28fd"},"extensions":{"persistedQuery":{"version":1,"sha256Hash":"2a747ed872b1c3f56ed500d097096f0cf8d365d2d5131cbdc170ae502f9b406a"}}}]'
+    #json = '[{"operationName":"SearchTray_SearchSuggestions","variables":{"queryFragment":"'+searchTerm+'","requestID":"1441a3fb-b8cb-4cf4-bfec-9559427a28fd"},"extensions":{"persistedQuery":{"version":1,"sha256Hash":"2a747ed872b1c3f56ed500d097096f0cf8d365d2d5131cbdc170ae502f9b406a"}}}]'
+    json = '[{"operationName":"SearchResultsPage_SearchResults","variables":{"query":"'+searchTerm+'","options":{"targets":[{"index":"CHANNEL"}]}},"extensions":{"persistedQuery":{"version":1,"sha256Hash":"aa914b7ce3bef314587273c1cef23d5ebf01b0815ec9e7b8b79ce28e7aa6e643"}}}]'
     return json
 
 def getStreamsForChannel(channelName):
