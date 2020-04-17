@@ -26,8 +26,14 @@ class CacheVars:
     topStreamsForGameJson = dict()
     topStreamsForGameTimestamps = dict()
 
+    loggingEnabled = False
+
 # @author Martin
 # Date: 26/03/2020
+
+def log(msg):
+    if(loggingEnabled):
+        print(msg)
 
 
 def getContentForUrl(URL):
@@ -62,7 +68,7 @@ def getTopGamesTwitch():
         output['top'].append(gameParsed)
     CacheVars.topGamesTwitchJson = output
     CacheVars.topGamesTwitchTimestamp = time.time()
-    print(output)
+    log(output)
     return output
 
 def getTopStreamsTwitch():
@@ -79,28 +85,28 @@ def getTopStreamsTwitch():
 
     CacheVars.topStreamsTwitchJson = output
     CacheVars.topStreamsTwitchTimestamp = time.time()
-    print(output)
+    log(output)
     return output
 
 def searchForChannelTwitch(searchTerm):
     searchTerm = unquote(searchTerm)
 
-    print("getting streams for search: " + searchTerm + " ")
+    log("getting streams for search: " + searchTerm + " ")
     payload = searchForTermJson(searchTerm)
     obj = getTwitchJsonBrowserAPI(payload)
-    print(obj)
+    log(obj)
     output = {"streams": []}
 
     for stream in obj[0]['data']['searchFor']['channels']['items']:
         if stream['stream'] is None:
             continue
-        print(stream)
+        log(stream)
         streamParsed = {"preview": {"medium": stream['stream']['previewImageURL']},
                         "channel": {"display_name": stream['displayName'],
                                     "name": stream['login']}}
         output['streams'].append(streamParsed)
 
-    print(output)
+    log(output)
     return output
 
 def getTopStreamsForGame(gameName):
@@ -109,17 +115,17 @@ def getTopStreamsForGame(gameName):
         return CacheVars.topStreamsForGameJson[gameName]
 
 
-    print("getting streams for game: "+gameName+" ")
+    log("getting streams for game: "+gameName+" ")
     payload = streamsForGameJson(gameName)
     obj = getTwitchJsonBrowserAPI(payload)
-    print(obj)
+    log(obj)
     output = {"streams": []}
 
     for stream in obj[0]['data']['game']['streams']['edges']:
         streamParsed = {"preview": {"medium": stream['node']['previewImageURL']}, "channel": {"display_name": stream['node']['broadcaster']['displayName'],"name": stream['node']['broadcaster']['login']}}
         output['streams'].append(streamParsed)
 
-    print(output)
+    log(output)
     CacheVars.topStreamsForGameJson[gameName] = output
     CacheVars.topStreamsForGameTimestamps[gameName] = time.time()
     return output
@@ -151,8 +157,8 @@ def getStreamsForChannel(channelName):
 
     r = requests.get(url=URL, headers=headers)
     obj = r.json()
-    print(str(obj["sig"]))
-    print(str(obj["token"]))
+    log(str(obj["sig"]))
+    log(str(obj["token"]))
     return parseM3U(streamUrls(obj["sig"], obj["token"], channelName))
 
 def streamUrls(sig, token, channelName):
@@ -175,7 +181,7 @@ def streamUrls(sig, token, channelName):
 
 
     r = requests.get(url=URL, params=params )
-    print(str(r.content))
+    log(str(r.content))
     return str(r.content)
 
 def parseM3U(m3uContent):
@@ -193,7 +199,7 @@ def parseM3U(m3uContent):
             resolution = line[11:]
         if "VIDEO=" in line:
             video = line.split("\\n")[1]
-            print(name+" "+resolution+ " "+video)
+            log(name+" "+resolution+ " "+video)
             streamEntry = {
                 'quality': name,
                 'resolution': resolution,
@@ -211,12 +217,15 @@ class TwitchHttpHander(BaseHTTPRequestHandler):
         s.send_header("Access-Control-Allow-Origin", "*")
         s.end_headers()
     def do_GET(s):
-        print("get: " +s.path)
+        log("get: " +s.path)
         if s.path == "/":
             title(s)
             return
         if s.path == "/games/top":
             gamesTop(s)
+            return
+        if s.path == "/enableDebug":
+            CacheVars.loggingEnabled = True
             return
         if s.path == "/initial/streams":
             topStreams(s)
@@ -231,19 +240,19 @@ class TwitchHttpHander(BaseHTTPRequestHandler):
 
         if "/stream/" in s.path:
             channelName = s.path[8:]
-            print("channelName: "+channelName)
+            log("channelName: "+channelName)
             streamsForChannel(s, channelName)
             return
         if "/search-streams/" in s.path:
             searchTerm = s.path[16:]
-            print("searchTerm: " + searchTerm)
+            log("searchTerm: " + searchTerm)
             searchForChannel(s, searchTerm)
             return
 
-        print("unknown: "+s.path)
+        log("unknown: "+s.path)
 
 def writeJson(s, data_set):
-    print(data_set)
+    log(data_set)
     s.send_response(200)
     s.send_header("Content-type", "json")
     s.send_header("Access-Control-Allow-Origin", "*")
