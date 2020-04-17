@@ -32,7 +32,7 @@ class CacheVars:
 # Date: 26/03/2020
 
 def log(msg):
-    if(loggingEnabled):
+    if(CacheVars.loggingEnabled):
         print(msg)
 
 
