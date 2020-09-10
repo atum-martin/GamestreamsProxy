@@ -131,11 +131,11 @@ def getTopStreamsForGame(gameName):
     return output
 
 def topStreamsJson():
-    payload = '[{"operationName":"BrowsePage_Popular","variables":{"limit":100,"platformType":"all","options":{"sort":"RELEVANCE","tags":[],"recommendationsContext":{"platform":"web"},"requestID":"JIRA-VXP-2397"},"sortTypeIsRecency":false},"extensions":{"persistedQuery":{"version":1,"sha256Hash":"3d1831781016217b1002b489682cd77f2726ff695b19f9704ffd8de35cd17edc"}}}]'
+    payload = '[{"operationName":"BrowsePage_Popular","variables":{"limit":300,"platformType":"all","options":{"sort":"RELEVANCE","tags":[],"recommendationsContext":{"platform":"web"},"requestID":"JIRA-VXP-2397"},"sortTypeIsRecency":false},"extensions":{"persistedQuery":{"version":1,"sha256Hash":"3d1831781016217b1002b489682cd77f2726ff695b19f9704ffd8de35cd17edc"}}}]'
     return payload
 
 def topGamesJson():
-    payload = '[{"operationName":"Algolia_RequestInfo","variables":{},"extensions":{"persistedQuery":{"version":1,"sha256Hash":"53a624acee2ecd22dd652c6c7beb352e30a62fc91260cf10d4a687cf08c881c0"}}},{"operationName":"BrowsePage_AllDirectories","variables":{"limit":100,"options":{"recommendationsContext":{"platform":"web"},"requestID":"JIRA-VXP-2397","sort":"RELEVANCE","tags":[]}},"extensions":{"persistedQuery":{"version":1,"sha256Hash":"78957de9388098820e222c88ec14e85aaf6cf844adf44c8319c545c75fd63203"}}}]'
+    payload = '[{"operationName":"Algolia_RequestInfo","variables":{},"extensions":{"persistedQuery":{"version":1,"sha256Hash":"53a624acee2ecd22dd652c6c7beb352e30a62fc91260cf10d4a687cf08c881c0"}}},{"operationName":"BrowsePage_AllDirectories","variables":{"limit":300,"options":{"recommendationsContext":{"platform":"web"},"requestID":"JIRA-VXP-2397","sort":"RELEVANCE","tags":[]}},"extensions":{"persistedQuery":{"version":1,"sha256Hash":"78957de9388098820e222c88ec14e85aaf6cf844adf44c8319c545c75fd63203"}}}]'
     return payload
 
 def streamsForGameJson(gameName):
