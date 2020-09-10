@@ -131,7 +131,7 @@ def getTopStreamsForGame(gameName):
     return output
 
 def topStreamsJson():
-    payload = '[{"operationName":"BrowsePage_Popular","variables":{"limit":300,"platformType":"all","options":{"sort":"RELEVANCE","tags":[],"recommendationsContext":{"platform":"web"},"requestID":"JIRA-VXP-2397"},"sortTypeIsRecency":false},"extensions":{"persistedQuery":{"version":1,"sha256Hash":"3d1831781016217b1002b489682cd77f2726ff695b19f9704ffd8de35cd17edc"}}}]'
+    payload = '[{"operationName":"BrowsePage_Popular","variables":{"limit":100,"platformType":"all","options":{"sort":"RELEVANCE","tags":[],"recommendationsContext":{"platform":"web"},"requestID":"JIRA-VXP-2397"},"sortTypeIsRecency":false},"extensions":{"persistedQuery":{"version":1,"sha256Hash":"3d1831781016217b1002b489682cd77f2726ff695b19f9704ffd8de35cd17edc"}}}]'
     return payload
 
 def topGamesJson():
