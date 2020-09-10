@@ -48,10 +48,12 @@ def getTwitchJsonBrowserAPI(json):
         'Accept': '*/*',
         'X-Device-Id': '6b885390dcd3be57',
         'Referer': 'https://www.twitch.tv/directory',
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.149 Safari/537.36'
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.149 Safari/537.36',
+        'Content-Type': 'text/plain;Charset=UTF-8'
     }
 
-    r = requests.post(url=URL, headers=headers, data=json)
+    r = requests.post(url=URL, headers=headers, data=json.encode('utf-8'))
+    log(r)
     obj = r.json()
     return obj
 
@@ -117,6 +119,7 @@ def getTopStreamsForGame(gameName):
 
     log("getting streams for game: "+gameName+" ")
     payload = streamsForGameJson(gameName)
+    log(payload)
     obj = getTwitchJsonBrowserAPI(payload)
     log(obj)
     output = {"streams": []}
@@ -332,5 +335,4 @@ t.start()
 
 
 #startWebServer()
-
 
