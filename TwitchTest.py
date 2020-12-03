@@ -8,6 +8,7 @@ import urllib.parse
 from urllib.parse import unquote
 import threading
 import os
+import base64
 from http.server import BaseHTTPRequestHandler,HTTPServer
 
 HOST_NAME = '0.0.0.0'
@@ -134,7 +135,7 @@ def getTopStreamsForGame(gameName):
     return output
 
 def topStreamsJson():
-    payload = '[{"operationName":"BrowsePage_Popular","variables":{"limit":100,"platformType":"all","options":{"sort":"RELEVANCE","tags":[],"recommendationsContext":{"platform":"web"},"requestID":"JIRA-VXP-2397"},"sortTypeIsRecency":false},"extensions":{"persistedQuery":{"version":1,"sha256Hash":"3d1831781016217b1002b489682cd77f2726ff695b19f9704ffd8de35cd17edc"}}}]'
+    payload = '[{"operationName":"BrowsePage_Popular","variables":{"limit":30,"platformType":"all","options":{"sort":"RELEVANCE","tags":[],"recommendationsContext":{"platform":"web"},"requestID":"JIRA-VXP-2397"},"sortTypeIsRecency":false},"extensions":{"persistedQuery":{"version":1,"sha256Hash":"3d1831781016217b1002b489682cd77f2726ff695b19f9704ffd8de35cd17edc"}}}]'
     return payload
 
 def topGamesJson():
@@ -149,6 +150,30 @@ def searchForTermJson(searchTerm):
     #json = '[{"operationName":"SearchTray_SearchSuggestions","variables":{"queryFragment":"'+searchTerm+'","requestID":"1441a3fb-b8cb-4cf4-bfec-9559427a28fd"},"extensions":{"persistedQuery":{"version":1,"sha256Hash":"2a747ed872b1c3f56ed500d097096f0cf8d365d2d5131cbdc170ae502f9b406a"}}}]'
     json = '[{"operationName":"SearchResultsPage_SearchResults","variables":{"query":"'+searchTerm+'","options":{"targets":[{"index":"CHANNEL"}]}},"extensions":{"persistedQuery":{"version":1,"sha256Hash":"aa914b7ce3bef314587273c1cef23d5ebf01b0815ec9e7b8b79ce28e7aa6e643"}}}]'
     return json
+
+def doAverts(channelName):
+    URL = 'https://static.twitchcdn.net/config/settings.9ba54761db92c54668c3d8f155a71b71.js'
+    headers = {
+        'Client-ID': 'kimne78kx3ncx6brgo4mv6wki5h1ko',
+        'Accept': 'application/vnd.twitchtv.v3+json'
+    }
+    r = requests.get(url=URL, headers=headers)
+    obj = str(r.content)
+
+    #spade_url":"
+    if 'spade_url' in obj:
+        advertUrl = obj[obj.index('spade_url')+12:]
+        advertUrl = advertUrl[:advertUrl.index('"')]
+        print(advertUrl)
+
+    payload = '{"event":"benchmark_template_loaded","properties":{"app_version":"6230e0e7-3d86-449b-8fe8-0ca7cc7837b3","benchmark_server_id":"f20fd90bc0c14ecb82dfdccc035e1560","client_time":1605044530.017,"device_id":"Ttj2YBDO8Xmq0ZIYQDEm5wjaQdQx6UhI","duration":320,"url":"https://www.twitch.tv/'+channelName+'}}'
+    payload_bytes = payload.encode('utf-8')
+    base64_bytes = base64.b64encode(payload_bytes)
+
+    r = requests.post(url=advertUrl, data=base64_bytes)
+
+
+
 
 def getStreamsForChannel(channelName):
     URL = "https://api.twitch.tv/api/channels/"+channelName+"/access_token.json"
@@ -167,10 +192,18 @@ def getStreamsForChannel(channelName):
 def streamUrls(sig, token, channelName):
     URL = "https://usher.ttvnw.net/api/channel/hls/"+channelName+".m3u8"
     i = random.randint(1, 10000)
+
+    #token = token.replace('server_ads":true', 'server_ads":false')
+    #token = token.replace('show_ads":true', 'show_ads":false')
+    #token = token.replace('hide_ads":false', 'hide_ads":true')
+    #token = token.replace('subscriber":false', 'subscriber":true')
+    #print(token)
+
+
     params  = {
         'Accept': 'application/vnd.twitchtv.v3+json',
-        'fast_bread': 'True',
-        'player': 'twitchweb',
+        'fast_bread': 'true',
+        'player': 'thunderdome',
         'player': 'any',
         'allow_source': 'true',
         'allow_audio_only': 'true',
@@ -178,7 +211,11 @@ def streamUrls(sig, token, channelName):
         'p': i,
         'schema': '_access_token_schema',
         'sig': sig,
-        'token': token
+        'token': token,
+        'play_session_id': 'ffad2e250fb4c5e10f9961b23f0b0e84',
+        'player_backend': 'mediaplayer',
+        'reassignments_supported': 'true'
+
     }
 
 
@@ -196,13 +233,17 @@ def parseM3U(m3uContent):
     ]
     #trim some of the string encoding off and split
     for line in m3uContent[3:-1].split(","):
+        #print(line)
         if "NAME=" in line:
             name = line[6:-1]
         if "RESOLUTION=" in line:
             resolution = line[11:]
         if "VIDEO=" in line:
+
             video = line.split("\\n")[1]
+            #video=line
             log(name+" "+resolution+ " "+video)
+            print(name+" "+resolution+ " "+video)
             streamEntry = {
                 'quality': name,
                 'resolution': resolution,
@@ -325,14 +366,18 @@ def startWebServer():
     httpd.server_close()
     print(time.asctime(), "Server Stops - %s:%s" % (HOST_NAME, PORT_NUMBER))
 
-#channelName = "esl_csgo"
+channelName = "esl_csgo"
+#doAverts(channelName)
 #getStreamsForChannel(channelName)
 
 #getTopStreamsForGame("Counter-strike: Global Offensive")
+
+#getTopStreamsTwitch()
 
 t = threading.Thread(target=startWebServer)
 t.start()
 
 
 #startWebServer()
+
 
