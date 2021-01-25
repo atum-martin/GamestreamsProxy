@@ -172,21 +172,7 @@ def doAverts(channelName):
 
     r = requests.post(url=advertUrl, data=base64_bytes)
 
-
-
-
 def getStreamsForChannel(channelName):
-    #URL = "https://api.twitch.tv/api/channels/"+channelName+"/access_token.json"
-
-    #headers = {
-    #    'Client-ID': 'kimne78kx3ncx6brgo4mv6wki5h1ko',
-    #    'Accept': 'application/vnd.twitchtv.v3+json'
-    #}
-
-    #r = requests.get(url=URL, headers=headers)
-    #obj = r.json()
-    #log(str(obj["sig"]))
-    #log(str(obj["token"]))
 
     obj = _download_access_token(channelName)
     log(str(obj["signature"].encode('utf-8')))
@@ -195,7 +181,6 @@ def getStreamsForChannel(channelName):
     return parseM3U(streamUrls(obj["signature"].encode('utf-8'), obj["value"].encode('utf-8'), channelName))
 
 def _download_access_token(video_id):
-    method = 'streamPlaybackAccessToken'
     ops = {
         'query': '''{
           streamPlaybackAccessToken(
@@ -212,11 +197,7 @@ def _download_access_token(video_id):
           }
         }''' % (video_id),
     }
-    return _download_base_gql(
-        video_id, ops,
-        'Downloading access token GraphQL')
 
-def _download_base_gql(video_id, ops, note, fatal=True):
     headers = {
         'Content-Type': 'text/plain;charset=UTF-8',
         'Client-ID': 'kimne78kx3ncx6brgo4mv6wki5h1ko',
@@ -230,13 +211,6 @@ def _download_base_gql(video_id, ops, note, fatal=True):
 def streamUrls(sig, token, channelName):
     URL = "https://usher.ttvnw.net/api/channel/hls/"+channelName+".m3u8"
     i = random.randint(1, 10000)
-
-    #token = token.replace('server_ads":true', 'server_ads":false')
-    #token = token.replace('show_ads":true', 'show_ads":false')
-    #token = token.replace('hide_ads":false', 'hide_ads":true')
-    #token = token.replace('subscriber":false', 'subscriber":true')
-    #print(token)
-
 
     params  = {
         'Accept': 'application/vnd.twitchtv.v3+json',
@@ -276,9 +250,12 @@ def parseM3U(m3uContent):
             name = line[6:-1]
         if "RESOLUTION=" in line:
             resolution = line[11:]
-        if "VIDEO=" in line:
+        if "VIDEO=" in line or "FRAME-RATE=" in line:
 
-            video = line.split("\\n")[1]
+            video = line.split("\\n")
+            if len(video) <= 1:
+                continue
+            video = video[1]
             #video=line
             log(name+" "+resolution+ " "+video)
             #print(name+" "+resolution+ " "+video)
@@ -404,9 +381,9 @@ def startWebServer():
     httpd.server_close()
     print(time.asctime(), "Server Stops - %s:%s" % (HOST_NAME, PORT_NUMBER))
 
-channelName = "esl_csgo"
+channelName = "runitup247"
 #doAverts(channelName)
-#getStreamsForChannel(channelName)
+getStreamsForChannel(channelName)
 #_download_access_token(channelName)
 
 #getTopStreamsForGame("Counter-strike: Global Offensive")
