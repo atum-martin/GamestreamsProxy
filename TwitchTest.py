@@ -383,11 +383,8 @@ def startWebServer():
     httpd.server_close()
     print(time.asctime(), "Server Stops - %s:%s" % (HOST_NAME, PORT_NUMBER))
 
-<<<<<<< HEAD
 #channelName = "esl_csgo"
-=======
-#channelName = "runitup247"
->>>>>>> origin/master
+
 #doAverts(channelName)
 #getStreamsForChannel(channelName)
 #_download_access_token(channelName)
