@@ -47,7 +47,7 @@ def getTwitchJsonBrowserAPI(json):
     headers = {
         'Client-Id': 'kimne78kx3ncx6brgo4mv6wki5h1ko',
         'Accept': '*/*',
-        'X-Device-Id': '6b885390dcd3be57',
+        'X-Device-Id': 'twitch-web-wall-mason',
         'Referer': 'https://www.twitch.tv/directory',
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.149 Safari/537.36',
         'Content-Type': 'text/plain;Charset=UTF-8'
@@ -201,6 +201,8 @@ def _download_access_token(video_id):
     headers = {
         'Content-Type': 'text/plain;charset=UTF-8',
         'Client-ID': 'kimne78kx3ncx6brgo4mv6wki5h1ko',
+        'X-Device-Id': 'twitch-web-wall-mason',
+        'Device-Id': 'twitch-web-wall-mason',
     }
 
     r = requests.post(url='https://gql.twitch.tv/gql', headers=headers, data=json.dumps(ops).encode())
@@ -381,9 +383,9 @@ def startWebServer():
     httpd.server_close()
     print(time.asctime(), "Server Stops - %s:%s" % (HOST_NAME, PORT_NUMBER))
 
-channelName = "runitup247"
+#channelName = "esl_csgo"
 #doAverts(channelName)
-getStreamsForChannel(channelName)
+#getStreamsForChannel(channelName)
 #_download_access_token(channelName)
 
 #getTopStreamsForGame("Counter-strike: Global Offensive")
